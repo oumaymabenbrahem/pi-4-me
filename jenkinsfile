@@ -61,23 +61,26 @@ pipeline {
             }
         }
 
-       stage('SonarQube Analysis') {
+     stage('SonarQube Analysis') {
     steps {
         script {
-            withCredentials([string(credentialsId: "${SONARQUBE_CREDENTIALS_ID}", variable: "SONAR_TOKEN")]) {
-                sh '''
-                    sonar-scanner \
-                      -Dsonar.projectKey=piapp \
-                      -Dsonar.projectName="Pi Application" \
-                      -Dsonar.projectVersion=1.0 \
-                      -Dsonar.sources=client,server \
-                      -Dsonar.host.url=$SONARQUBE_URL \
-                      -Dsonar.login=$SONAR_TOKEN
-                '''
+            withSonarQubeEnv('SonarQube') {
+                withCredentials([string(credentialsId: "${SONARQUBE_CREDENTIALS_ID}", variable: "SONAR_TOKEN")]) {
+                    tool name: 'SonarScanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+                    sh '''
+                        sonar-scanner \
+                          -Dsonar.projectKey=piapp \
+                          -Dsonar.projectName="Pi Application" \
+                          -Dsonar.projectVersion=1.0 \
+                          -Dsonar.sources=client,server \
+                          -Dsonar.login=$SONAR_TOKEN
+                    '''
+                }
             }
         }
     }
 }
+
 
 
 
