@@ -11,7 +11,16 @@ services:
     depends_on:
       - mongo
     environment:
-      - MONGO_URI=mongodb://mongo:27017/your_database_name 
+      - MONGO_URI=mongodb://mongo:27017/your_database_name
+    restart: unless-stopped
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: react_client
+    ports:
+      - "5024:5024"
     restart: unless-stopped
 
   mongo:
