@@ -1,7 +1,14 @@
 FROM node:16-alpine
+
 WORKDIR /app
-COPY . /app
+
+COPY . .
+
 RUN npm install
-RUN npm run build-dev
+
+RUN npm run build
+
 EXPOSE 5024
-CMD  ["npm", "start"]
+
+CMD ["npm", "run", "preview"]
+
