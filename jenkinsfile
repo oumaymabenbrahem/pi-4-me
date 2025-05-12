@@ -62,21 +62,23 @@ pipeline {
         }
 
        stage('SonarQube Analysis') {
-            steps {
-                script {
-                    withCredentials([string(credentialsId: "${SONARQUBE_CREDENTIALS_ID}", variable: "SONAR_TOKEN")]) {
-                        sh 'npm install -g sonarqube-scanner'
-                        sh """
-                            sonar-scanner \
-                                -Dsonar.projectKey=piapp \
-                                -Dsonar.sources=client,server \
-                                -Dsonar.host.url=${SONARQUBE_URL} \
-                                -Dsonar.login=$SONAR_TOKEN
-                        """
-                    }
-                }
+    steps {
+        script {
+            withCredentials([string(credentialsId: "${SONARQUBE_CREDENTIALS_ID}", variable: "SONAR_TOKEN")]) {
+                sh '''
+                    sonar-scanner \
+                      -Dsonar.projectKey=piapp \
+                      -Dsonar.projectName="Pi Application" \
+                      -Dsonar.projectVersion=1.0 \
+                      -Dsonar.sources=client,server \
+                      -Dsonar.host.url=$SONARQUBE_URL \
+                      -Dsonar.login=$SONAR_TOKEN
+                '''
             }
         }
+    }
+}
+
 
 
         stage('Build Client') {
