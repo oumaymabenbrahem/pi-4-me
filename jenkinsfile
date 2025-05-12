@@ -61,7 +61,9 @@ pipeline {
             }
         }
 stage('SonarQube Analysis') {
-    echo 'sonar'
+     steps {
+        echo 'Analyse SonarQube désactivée pour le moment.'
+    }
    /* steps {
         script {
             withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
