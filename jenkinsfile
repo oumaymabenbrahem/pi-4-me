@@ -61,8 +61,8 @@ pipeline {
             }
         }
 stage('SonarQube Analysis') {
-    steps {
-       /* script {
+   /* steps {
+        script {
             withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
                 sh 'npm install -g sonarqube-scanner'
                 sh '''
@@ -75,8 +75,8 @@ stage('SonarQube Analysis') {
                     -Dsonar.javascript.node.maxspace=2048
                 '''
             }
-        }*/
-    }
+        }
+    }*/
 }
 
 
