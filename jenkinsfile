@@ -61,23 +61,22 @@ pipeline {
             }
         }
 
-     stage('SonarQube Analysis') {
-    steps {
-        script {
-            withCredentials([string(credentialsId: "${SONARQUBE_CREDENTIALS_ID}", variable: "SONAR_TOKEN")]) {
-                // Assurez-vous que le scanner CLI est déjà installé sur la machine
-                sh """
-                    sonar-scanner \
-                        -Dsonar.projectKey=piapp \
-                        -Dsonar.sources=client,server \
-                        -Dsonar.host.url=${SONARQUBE_URL} \
-                        -Dsonar.login=$SONAR_TOKEN \
-                        -Dsonar.verbose=true
-                """
+    stage('SonarQube Analysis') {
+            steps {
+                script {
+                    withCredentials([string(credentialsId: "${SONARQUBE_CREDENTIALS_ID}", variable: "SONAR_TOKEN")]) {
+                        sh 'npm install -g sonarqube-scanner'
+                        sh """
+                            sonar-scanner \
+                                -Dsonar.projectKey=piapp \
+                                -Dsonar.sources=client,server \
+                                -Dsonar.host.url=${SONARQUBE_URL} \
+                                -Dsonar.login=$SONAR_TOKEN
+                        """
+                    }
+                }
             }
         }
-    }
-}
 
 
 
