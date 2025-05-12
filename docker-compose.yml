@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
     container_name: node_app_dev
     ports:
-      - "5000:5000"
+      - "5001:5000"
     depends_on:
       - mongo
     environment:
