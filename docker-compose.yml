@@ -1,0 +1,39 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  db:
+    image: mongo:4.2
+    container_name: db
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    ports:
+      - 27017:27017
+    volumes:
+      - ./data/dump:/dump
+
+  app:
+    build:
+      context: ./server
+    image: 192.168.33.10:8083/nodemongoapp:6.0
+    container_name: back
+    restart: always
+    ports:
+      - '5000:5000'
+    depends_on:
+      - db
+
+  recommendation:
+    build:
+      context: ./recommendation-service
+    container_name: recommendation
+    restart: always
+    ports:
+      - '5001:5001'
+    environment:
+      - MONGO_URI=mongodb://db:27017/oussamradwh
+    depends_on:
+      - db
+      - app
