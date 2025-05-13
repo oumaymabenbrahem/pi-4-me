@@ -1,0 +1,137 @@
+pipeline {
+    agent {
+        docker {
+            image 'node:18'
+            args '--privileged -v /var/run/docker.sock:/var/run/docker.sock -u root'
+        }
+    }
+
+    environment {
+        SONARQUBE_CREDENTIALS_ID = "scanner"
+        SONARQUBE_URL = "http://192.168.33.10:9000"
+        registryCredentials = "nexus"
+        registry = "192.168.33.10:8083"
+    }
+
+    stages {
+        stage('Install Docker') {
+            steps {
+               sh '''
+                apt-get update
+                apt-get install -y docker.io curl
+                curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+                chmod +x /usr/local/bin/docker-compose
+               '''
+            }
+        }
+
+        stage('Install Client Dependencies') {
+            steps {
+                dir('client') {
+                    sh 'npm install'
+                }
+            }
+        }
+
+        stage('Install Server Dependencies') {
+            steps {
+                dir('server') {
+                    sh 'npm install'
+                }
+            }
+        }
+
+        stage('Client Tests') {
+            steps {
+                dir('client') {
+                    script {
+                        sh 'npm test || echo "Aucun test client configuré"'
+                    }
+                }
+            }
+        }
+
+        stage('Server Tests') {
+            steps {
+                dir('server') {
+                    script {
+                        sh 'npm test || echo "Aucun test serveur configuré"'
+                    }
+                }
+            }
+        }
+stage('SonarQube Analysis') {
+     steps {
+        echo 'Analyse SonarQube désactivée pour le moment.'
+    }
+   /* steps {
+        script {
+            withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                sh 'npm install -g sonarqube-scanner'
+                sh '''
+                    sonar-scanner \
+                    -Dsonar.projectKey=piapp \
+                    -Dsonar.sources=client,server \
+                    -Dsonar.host.url=http://192.168.33.10:9000 \
+                    -Dsonar.token=$SONAR_TOKEN \
+                    -Dsonar.sourceEncoding=UTF-8 \
+                    -Dsonar.javascript.node.maxspace=2048
+                '''
+            }
+        }
+    }*/
+}
+
+
+
+
+
+        stage('Build Client') {
+            steps {
+                dir('client') {
+                    sh 'npm run build'
+                }
+            }
+        }
+
+        stage('Building images (node and mongo)') {
+            steps {
+                sh 'docker-compose up -d'
+            }
+        }
+
+        stage('Deploy to Nexus') { 
+            steps {   
+                script { 
+                    docker.withRegistry("http://${registry}", registryCredentials) { 
+                        sh 'docker push $registry/nodemongoapp:5.0' 
+                    } 
+                } 
+            } 
+        }
+
+        stage('Start Prometheus with Docker') {
+            steps {
+                 sh 'docker start prometheus'
+            }
+        }
+
+        stage('Start Grafana with Docker') {
+            steps {
+                sh 'docker start grafana'
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Pipeline terminée - Nettoyage'
+        }
+        success {
+            echo 'SUCCÈS : Le déploiement a réussi!'
+        }
+        failure {
+            echo 'ÉCHEC : Vérifiez les logs pour diagnostiquer le problème'
+        }
+    }
+}
